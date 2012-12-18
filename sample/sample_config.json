@@ -1,0 +1,5 @@
+{ "web_server": {
+    "host": "http://hoge.com",
+    "port": 8080  },
+  "users": ["saitama", "gumma", "ibaraki"]
+}
