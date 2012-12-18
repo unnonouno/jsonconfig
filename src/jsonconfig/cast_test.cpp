@@ -94,23 +94,50 @@ TEST(cast, struct) {
   
 }
 
+struct server_conf {
+  struct web_conf {
+    std::string host;
+    int port;
+
+    template <typename Ar>
+    void serialize(Ar& ar) {
+      ar & MEMBER(host) & MEMBER(port);
+    }
+  } web_server;
+
+  std::vector<std::string> users;
+
+  template <typename Ar>
+  void serialize(Ar& ar) {
+    ar & MEMBER(web_server) & MEMBER(users);
+  }
+};
+
 TEST(cast, error) {
-  ConfigRoot conf(lexical_cast<json>("{\"name_\": \"Taro\", \"height_\": 160.0, \"age\": 20, \"attributes\": {\"address\": \"Tokyo\"}, \"sport\": \"tennis\"}"));
-  Person p;
-  p.age = 20;
-  p.attributes["address"] = "Tokyo";
-  p.sport = "tennis";
+  ConfigRoot conf(lexical_cast<json>("{\"web_server\": { \"host\" : 123}, \"users\": [\"abc\", 1] }"));
 
   std::vector<pfi::lang::shared_ptr<ConfigError> > errors;
-  ConfigCastWithError<Person>(conf, errors);
-  EXPECT_EQ(2, errors.size());
+  server_conf c = ConfigCastWithError<server_conf>(conf, errors);
+  EXPECT_EQ(3, errors.size());
+
+  TypeError* e1 = dynamic_cast<TypeError*>(errors[0].get());
+  ASSERT_TRUE(e1);
+  EXPECT_EQ(".web_server.host", e1->GetPath());
+  EXPECT_EQ(json::Integer, e1->GetActual());
+
+  NotFound* e2 = dynamic_cast<NotFound*>(errors[1].get());
+  ASSERT_TRUE(e2);
+  EXPECT_EQ(".web_server", e2->GetPath());
+  EXPECT_EQ("port", e2->GetKey());
+
+  TypeError* e3 = dynamic_cast<TypeError*>(errors[2].get());
+  ASSERT_TRUE(e3);
+  EXPECT_EQ(".users[1]", e3->GetPath());
+  EXPECT_EQ(json::Integer, e3->GetActual());
 
   for (size_t i = 0; i < errors.size(); i++) {
     cout << errors[i]->what() << endl;
   }
-
-  EXPECT_NE("Taron", p.name);
-  EXPECT_NE(160.0, p.height);
 }
 
 }

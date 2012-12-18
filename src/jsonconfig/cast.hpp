@@ -10,8 +10,8 @@ namespace jsonconfig {
 
 class JsonConfigIarchiveCast {
  public:
-  JsonConfigIarchiveCast(const Config &js): js(js), trace_error_(false) {}
-  JsonConfigIarchiveCast(const Config &js, JsonConfigIarchiveCast& parent): js(js), trace_error_(parent.TraceError()), parent_(parent) {}
+  JsonConfigIarchiveCast(const Config &js): js(js), trace_error_(false), parent_(NULL) {}
+  JsonConfigIarchiveCast(const Config &js, JsonConfigIarchiveCast& parent): js(js), trace_error_(parent.TraceError()), parent_(&parent) {}
   const Config& Get() const { return js; }
   void SetTraceError(bool trace) { trace_error_ = trace; }
   bool TraceError() const {
@@ -38,7 +38,7 @@ class JsonConfigIarchiveCast {
   const Config &js;
   bool trace_error_;
   std::vector<pfi::lang::shared_ptr<ConfigError> > errors_;
-  pfi::data::optional<JsonConfigIarchiveCast> parent_;
+  JsonConfigIarchiveCast* parent_;
 };
 
 template <typename T>

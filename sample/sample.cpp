@@ -21,6 +21,7 @@ struct server_conf {
 };
 
 int main() try {
+  std::vector<pfi::lang::shared_ptr<jsonconfig::ConfigError> > errors;
   using namespace std;
   {
     jsonconfig::ConfigRoot conf = jsonconfig::Load("sample/sample_config.json");
@@ -32,7 +33,8 @@ int main() try {
   
   {
     jsonconfig::ConfigRoot conf = jsonconfig::Load("sample/error_config.json");
-    server_conf serv = jsonconfig::ConfigCast<server_conf>(conf);
+    server_conf serv = jsonconfig::ConfigCastWithError<server_conf>(conf, errors);
+    cout << errors.empty() << cout;
   }
 
 } catch(std::exception& e) {
