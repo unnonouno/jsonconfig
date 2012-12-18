@@ -94,4 +94,23 @@ TEST(cast, struct) {
   
 }
 
+TEST(cast, error) {
+  ConfigRoot conf(lexical_cast<json>("{\"name_\": \"Taro\", \"height_\": 160.0, \"age\": 20, \"attributes\": {\"address\": \"Tokyo\"}, \"sport\": \"tennis\"}"));
+  Person p;
+  p.age = 20;
+  p.attributes["address"] = "Tokyo";
+  p.sport = "tennis";
+
+  std::vector<pfi::lang::shared_ptr<ConfigError> > errors;
+  ConfigCastWithError<Person>(conf, errors);
+  EXPECT_EQ(2, errors.size());
+
+  for (size_t i = 0; i < errors.size(); i++) {
+    cout << errors[i]->what() << endl;
+  }
+
+  EXPECT_NE("Taron", p.name);
+  EXPECT_NE(160.0, p.height);
+}
+
 }
