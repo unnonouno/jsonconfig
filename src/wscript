@@ -1,2 +1,9 @@
 def build(bld):
-    bld.recurse('jsonconfig')
+  bld.recurse('jsonconfig')
+
+  bld.program(
+    features = 'gtest',
+    source = 'jsonconfig_test.cpp',
+    target = 'jsonconfig_test',
+    use = 'PFICOMMON jsonconfig'
+  )

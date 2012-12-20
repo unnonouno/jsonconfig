@@ -1,65 +1,63 @@
+
 #ifndef JSOCONFIG_CAST_HPP_
 #define JSOCONFIG_CAST_HPP_
 
 #include "config.hpp"
 
+#include <stdint.h>
+#include <vector>
 #include <pficommon/data/unordered_map.h>
 #include <pficommon/lang/shared_ptr.h>
 
 namespace jsonconfig {
 
-class JsonConfigIarchiveCast {
+typedef std::vector<pfi::lang::shared_ptr<config_error> > config_error_list;
+
+class json_config_iarchive_cast {
  public:
-  JsonConfigIarchiveCast(const Config &js): js(js), trace_error_(false), parent_(NULL) {}
-  JsonConfigIarchiveCast(const Config &js, JsonConfigIarchiveCast& parent): js(js), trace_error_(parent.TraceError()), parent_(&parent) {}
-  const Config& Get() const { return js; }
-  void SetTraceError(bool trace) { trace_error_ = trace; }
-  bool TraceError() const {
-    return trace_error_;
+  json_config_iarchive_cast(const config& js): js_(js), errors_(NULL) {}
+  json_config_iarchive_cast(const config& js, config_error_list* errors): js_(js), errors_(errors) {}
+
+  const config& get_config() const { return js_; }
+  const pfi::text::json::json& get() const { return js_.get(); }
+
+  bool trace_error() const {
+    return errors_;
   }
+
   template <class T>
-  void PushError(const T& e)
-  {
-    if (parent_) {
-      parent_->PushError(e);
-    } else {
-      errors_.push_back(pfi::lang::shared_ptr<ConfigError>(new T(e)));
+  void push_error(const T& e) {
+    if (errors_) {
+      errors_->push_back(pfi::lang::shared_ptr<config_error>(new T(e)));
     }
   }
-  std::vector<pfi::lang::shared_ptr<ConfigError> >& Errors()
-  {
-    if (parent_) {
-      return parent_->Errors();
-    } else {
-      return errors_;
-    }
+
+  config_error_list* errors() const {
+    return errors_;
   }
  private:
-  const Config &js;
-  bool trace_error_;
-  std::vector<pfi::lang::shared_ptr<ConfigError> > errors_;
-  JsonConfigIarchiveCast* parent_;
+  const config& js_;
+  config_error_list* errors_;
 };
 
 template <typename T>
-void FromConfig(const Config& conf, T& v);
+void json_from_config(const config& conf, T& v);
 
 template <typename T>
-void FromConfig(const Config& conf, T& v, JsonConfigIarchiveCast& js);
+void json_from_config(const config& conf, T& v, json_config_iarchive_cast& js);
 
 template <typename T>
-inline void serialize(JsonConfigIarchiveCast &js, T &v) {
+inline void serialize(json_config_iarchive_cast& js, T& v) {
   // TODO: insert typecheck
   pfi::data::serialization::access::serialize(js, v);
 }
 
-////////
-
-inline bool CheckType(JsonConfigIarchiveCast& js, pfi::text::json::json::json_type_t t) {
-  if (js.Get().Get().type() != t) {
-    TypeError e(js.Get().GetPath(), t, js.Get().Get().type());
-    if (js.TraceError()) {
-      js.PushError(e);
+namespace detail {
+inline bool check_json_type(json_config_iarchive_cast& js, pfi::text::json::json::json_type_t t) {
+  if (js.get().type() != t) {
+    type_error e(js.get_config().path(), t, js.get().type());
+    if (js.trace_error()) {
+      js.push_error(e);
     } else {
       throw e;
     }
@@ -67,110 +65,122 @@ inline bool CheckType(JsonConfigIarchiveCast& js, pfi::text::json::json::json_ty
   }
   return true;
 }
+} // detail
 
-#define GENERATE_CONFIG_SERIALIZE_DEF(typ, json_typ)                \
-  template <>                                                       \
-  inline void serialize(JsonConfigIarchiveCast &js, typ &v) {       \
-    if (CheckType(js, pfi::text::json::json::json_typ)) {           \
-      v = pfi::text::json::json_cast<typ>(js.Get().Get());          \
-    }                                                               \
+#define GENERATE_CONFIG_SERIALIZE_DEF(typ, json_typ) \
+  template <> \
+  inline void serialize(json_config_iarchive_cast& js, typ& v) { \
+    if (detail::check_json_type(js, pfi::text::json::json::json_typ)) { \
+      v = pfi::text::json::json_cast<typ>(js.get()); \
+    } \
   }
 
 GENERATE_CONFIG_SERIALIZE_DEF(bool, Bool)
-GENERATE_CONFIG_SERIALIZE_DEF(int, Integer)
-GENERATE_CONFIG_SERIALIZE_DEF(long, Integer)
+GENERATE_CONFIG_SERIALIZE_DEF(int32_t, Integer)
+GENERATE_CONFIG_SERIALIZE_DEF(int64_t, Integer)
 GENERATE_CONFIG_SERIALIZE_DEF(float, Float)
 GENERATE_CONFIG_SERIALIZE_DEF(double, Float)
 GENERATE_CONFIG_SERIALIZE_DEF(std::string, String)
 
 template <typename T>
-inline void serialize(JsonConfigIarchiveCast& js, std::vector<T>& vs) {
-  size_t size = js.Get().Size();
+inline void serialize(json_config_iarchive_cast& js, std::vector<T>& vs) {
+  // check errors
+  if (!detail::check_json_type(js, pfi::text::json::json::Array))
+    return;
+
+  size_t size = js.get_config().size();
   std::vector<T> v(size);
   for (size_t i = 0; i < size; ++i) {
-    // TODO: merge all errors
-    FromConfig(js.Get()[i], v[i], js);
+    json_from_config(js.get_config()[i], v[i], js.errors());
   }
   vs.swap(v);
 }
 
 template <typename K, typename V>
-inline void serialize(JsonConfigIarchiveCast& js, std::map<K, V>& m) {
+inline void serialize(json_config_iarchive_cast& js, std::map<K, V>& m) {
+  if (!detail::check_json_type(js, pfi::text::json::json::Object))
+    return;
+
   std::map<K, V> tmp;
-  typedef Config::Iterator iter_t;
-  for (iter_t it = js.Get().GetIterator(); it.HasNext(); it.Next()) {
-    // TODO: merge all errors
+  typedef config::iterator iter_t;
+  for (iter_t it = js.get_config().begin(), end = js.get_config().end(); it != end; ++it) {
     V value;
-    FromConfig(it.GetValue(), value, js);
-    tmp[it.GetKey()] = value;
+    json_from_config(it.value(), value, js.errors());
+    tmp[it.key()] = value;
   }
   tmp.swap(m);
 }
 
 template <typename K, typename V>
-inline void serialize(JsonConfigIarchiveCast& js, pfi::data::unordered_map<K, V>& m) {
+inline void serialize(json_config_iarchive_cast& js, pfi::data::unordered_map<K, V>& m) {
+  if (!detail::check_json_type(js, pfi::text::json::json::Object))
+    return;
+
   pfi::data::unordered_map<K, V> tmp;
-  typedef Config::Iterator iter_t;
-  for (iter_t it = js.Get().GetIterator(); it.HasNext(); it.Next()) {
-    // TODO: merge all errors
+  typedef config::iterator iter_t;
+  for (iter_t it = js.get_config().begin(), end = js.get_config().end(); it != end; ++it) {
     V value;
-    FromConfig(it.GetValue(), value);
-    tmp[it.GetKey()] = value;
+    json_from_config(it.value(), value, js.errors());
+    tmp[it.key()] = value;
   }
   tmp.swap(m);
 }
 
 template <typename T>
-inline void serialize(JsonConfigIarchiveCast &js, pfi::data::serialization::named_value<pfi::data::optional<T> >& v) {
-  if (js.Get().Include(v.name)) {
-    T t;
-    FromConfig(js.Get()[v.name], t, js);
-    v.v = t;
+inline void serialize(json_config_iarchive_cast& js, pfi::data::serialization::named_value<pfi::data::optional<T> >& v) {
+  using pfi::text::json::json;
+  if (js.get_config().contain(v.name) && (js.get_config()[v.name].get().type() != json::Null)) {
+    T value;
+    json_from_config(js.get_config()[v.name], value, js.errors());
+    v.v = value;
   } else {
+    // optional can be null
     v.v = pfi::data::optional<T>();
   }
 }
 
 template <typename T>
-inline void serialize(JsonConfigIarchiveCast &js, pfi::data::serialization::named_value<T>& v) {
-  if (js.Get().Include(v.name)) {
-    FromConfig(js.Get()[v.name], v.v, js);
+inline void serialize(json_config_iarchive_cast& js, pfi::data::serialization::named_value<T>& v) {
+  if (js.get_config().contain(v.name)) {
+    json_from_config(js.get_config()[v.name], v.v, js.errors());
   } else {
-    js.PushError(NotFound(js.Get().GetPath(), v.name));
+    not_found e(js.get_config().path(), v.name);
+    if (js.trace_error()) {
+      js.push_error(e);
+    } else {
+      throw e;
+    }
   }
 }
 
-////////
 
 template <typename T>
-void FromConfig(const Config& conf, T& v) {
-  JsonConfigIarchiveCast cast(conf);
+void json_from_config(const config& conf, T& v) {
+  json_config_iarchive_cast cast(conf);
   serialize(cast, v);
 }
 
 template <typename T>
-void FromConfig(const Config& conf, T& v, JsonConfigIarchiveCast& parent) {
-  JsonConfigIarchiveCast cast(conf, parent);
+void json_from_config(const config& conf, T& v, config_error_list* errors) {
+  json_config_iarchive_cast cast(conf, errors);
   serialize(cast, v);
 }
 
 template <class T>
-T ConfigCast(const Config& c) {
-  T v;
-  FromConfig(c, v);
-  return v;
+T config_cast(const config& c) {
+  T value;
+  json_from_config(c, value);
+  return value;
 }
 
 template <class T>
-T ConfigCastWithError(const Config& c, std::vector<pfi::lang::shared_ptr<ConfigError> >& errors) {
-  T v;
-  JsonConfigIarchiveCast cast(c);
-  cast.SetTraceError(true);
-  serialize(cast, v);
-  errors.swap(cast.Errors());
-  return v;
+T config_cast(const config& c, config_error_list& errors) {
+  T value;
+  json_config_iarchive_cast cast(c, &errors);
+  serialize(cast, value);
+  return value;
 }
 
-}
+} // jsonconfig
 
 #endif // JSOCONFIG_CAST_HPP_
