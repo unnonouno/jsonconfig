@@ -1,75 +1,70 @@
 #include "config.hpp"
-
-#include <iostream>
-
 #include "exception.hpp"
 
 using namespace std;
 
 namespace jsonconfig {
 
-Config::Iterator::Iterator(const Config& parent)
-    : parent_(parent), it_(parent.json_.begin()), end_(parent.json_.end()) {
+config::iterator::iterator(const config::iterator& it)
+  : parent_(it.parent_), it_(it.it_) {
 }
 
-Config Config::Iterator::GetValue() const {
-  return Config(it_->second,
-                parent_.GetPath() + "." + GetKey());
+config::iterator::iterator(const config& parent, const pfi::text::json::json::const_iterator& it)
+  : parent_(parent), it_(it) {
 }
 
-Config Config::operator[](size_t index) const {
+const std::string& config::iterator::iterator::key() const {
+  return it_->first;
+}
+
+config config::iterator::value() const {
+  return config(it_->second,
+                parent_.path() + "." + key());
+}
+
+config config::operator[](size_t index) const {
   try {
     if (index < json_.size()) {
       std::ostringstream os;
       os << path_ << "[" << index << "]";
-      return Config(json_[index], os.str());
+      return config(json_[index], os.str());
     } else
-      throw OutOfRange(path_, json_.size(), index);
-  } catch(std::bad_cast& e) {
-    throw TypeError(path_, pfi::text::json::json::Array, GetActualType());
+      throw out_of_range(path_, json_.size(), index);
+  } catch (const std::bad_cast& e) {
+    throw type_error(path_, pfi::text::json::json::Array, type());
   }
 }
 
-Config Config::operator[](const std::string& key) const {
+config config::operator[](const std::string& key) const {
   try {
     std::ostringstream os;
     os << path_ << "." << key;
-    return Config(json_[key], os.str());
-  } catch(std::out_of_range& e) {
-    throw NotFound(path_, key);
-  } catch(std::bad_cast& e) {
-    throw TypeError(path_, pfi::text::json::json::Object, GetActualType());
+    return config(json_[key], os.str());
+  } catch (const std::out_of_range& e) {
+    throw not_found(path_, key);
+  } catch (const std::bad_cast& e) {
+    throw type_error(path_, pfi::text::json::json::Object, type());
   }
 }
 
-bool Config::Include(const std::string& key) const {
+bool config::contain(const std::string& key) const {
   return json_.count(key) > 0;
 }
 
-size_t Config::Size() const {
+size_t config::size() const {
   try {
     return json_.size();
-  } catch(std::bad_cast& e) {
-    throw TypeError(path_, pfi::text::json::json::Array, GetActualType());
+  } catch (const std::bad_cast& e) {
+    throw type_error(path_, pfi::text::json::json::Array, type());
   }
 }
 
-Config::Iterator Config::GetIterator() const {
-  return Iterator(*this);
+config::iterator config::begin() const {
+  return iterator(*this, json_.begin());
 }
 
-bool Config::IsNull() const {
-  return pfi::text::json::is<pfi::text::json::json_null>(json_.get());
+config::iterator config::end() const {
+  return iterator(*this, json_.end());
 }
 
-ConfigRoot Load(const std::string& path) {
-  ifstream ifs(path.c_str());
-  if (!ifs)
-    throw runtime_error("Cannot open: \"" + path + "\"");
-
-  pfi::text::json::json j;
-  ifs >> j;
-  return ConfigRoot(j);
-}
-
-}
+} // jsonconfig

@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef JSONCONFIG_EXCEPTION_HPP_
 #define JSONCONFIG_EXCEPTION_HPP_
 
@@ -9,19 +11,15 @@
 
 namespace jsonconfig {
 
-class ConfigError : public std::exception {
+class config_error : public std::exception {
  public:
-  ConfigError(const std::string& path,
+  config_error(const std::string& path,
               const std::string& message);
 
-  ~ConfigError() throw();
+  ~config_error() throw();
 
-  const std::string& GetPath() const {
+  const std::string& path() const {
     return path_;
-  }
-
-  const std::string& GetMessage() const {
-    return message_;
   }
 
   const char* what() const throw() {
@@ -33,39 +31,39 @@ class ConfigError : public std::exception {
   const std::string message_;
 };
 
-class TypeError : public ConfigError {
+class type_error : public config_error {
  public:
-  TypeError(const std::string& path,
+  type_error(const std::string& path,
             pfi::text::json::json::json_type_t expect,
             pfi::text::json::json::json_type_t actual);
 
-  ~TypeError() throw();
+  ~type_error() throw();
 
-  pfi::text::json::json::json_type_t GetExpect() const {
+  pfi::text::json::json::json_type_t expect() const {
     return expect_;
   }
 
-  pfi::text::json::json::json_type_t GetActual() const {
+  pfi::text::json::json::json_type_t actual() const {
     return actual_;
   }
 
-  private:
+ private:
   const pfi::text::json::json::json_type_t expect_;
   const pfi::text::json::json::json_type_t actual_;
 };
 
-class OutOfRange : public ConfigError {
+class out_of_range : public config_error {
  public:
-  OutOfRange(const std::string& path,
+  out_of_range(const std::string& path,
              size_t size, size_t index);
 
-  ~OutOfRange() throw();
+  ~out_of_range() throw();
 
-  size_t GetSize() const {
+  size_t size() const {
     return size_;
   }
 
-  size_t GetIndex() const {
+  size_t position() const {
     return index_;
   }
 
@@ -74,13 +72,13 @@ class OutOfRange : public ConfigError {
   size_t index_;
 };
 
-class NotFound : public ConfigError {
+class not_found : public config_error {
  public:
-  NotFound(const std::string& path, const std::string& key);
+  not_found(const std::string& path, const std::string& key);
 
-  ~NotFound() throw();
+  ~not_found() throw();
 
-  const std::string& GetKey() const {
+  const std::string& key() const {
     return key_;
   }
 
@@ -88,5 +86,6 @@ class NotFound : public ConfigError {
   std::string key_;
 };
 
-}
+} // jsonconfig
+
 #endif // JSONCONFIG_EXCEPTION_HPP_

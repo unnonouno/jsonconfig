@@ -1,3 +1,4 @@
+
 #ifndef JSONCONFIG_CONFIG_HPP_
 #define JSONCONFIG_CONFIG_HPP_
 
@@ -8,89 +9,104 @@
 #include <pficommon/lang/cast.h>
 #include <pficommon/lang/noncopyable.h>
 
-#include "exception.hpp"
-
 namespace jsonconfig {
 
-class Config;
+class config;
 
 template <class T>
-T ConfigCast(const Config& c);
+T config_cast(const config& c);
 
-class Config {
+class config {
  public:
-  class Iterator {
+  class iterator {  // but this is const_iterator
    public:
-    Iterator(const Config& parent);
-    
-    const std::string& GetKey() const {
-      return it_->first;
+     typedef pfi::text::json::json::const_iterator iterator_base;
+    iterator(const iterator&);
+    iterator(const config& parent, const pfi::text::json::json::const_iterator& it);
+
+    const std::string& key() const;
+    config value() const;
+
+    // InputIterator
+    bool operator==(const iterator& it) const {
+      return it_ == it.it_;
     }
-    
-    Config GetValue() const;
-    
-    bool HasNext() const {
-      return it_ != end_;
+
+    bool operator!=(const iterator& it) const {
+      return !(*this == it);
     }
-    
-    void Next() {
+
+    std::pair<const std::string, pfi::text::json::json> operator*() const {
+      return *it_;
+    }
+
+    const std::pair<const std::string, pfi::text::json::json>* operator->() const {
+      return it_.operator->();
+    }
+    // FowrardIterator
+    const iterator& operator++() {
       ++it_;
+      return *this;
     }
-    
+    const iterator operator++(int) {
+      iterator temp(*this);
+      ++it_;
+      return temp;
+    }
+
    private:
-    const Config& parent_;
+    const config& parent_;
     pfi::text::json::json::const_iterator it_;
-    pfi::text::json::json::const_iterator end_;
   };
 
   template <typename T>
   T As() const {
-    return ConfigCast<T>(*this);
+    return config_cast<T>(*this);
   }
 
-  Config operator[](size_t index) const;
+  config operator[](size_t index) const;
 
-  Config operator[](const std::string& key) const;
+  config operator[](const std::string& key) const;
 
-  bool Include(const std::string& key) const;
+  bool contain(const std::string& key) const;
 
-  Iterator GetIterator() const;
+  iterator begin() const;
+  iterator end() const;
 
-  size_t Size() const;
+  size_t size() const;
+  const pfi::text::json::json& get() const { return json_; }
+  const std::string& path() const { return path_; }
 
-  const pfi::text::json::json& Get() const { return json_; }
+  template <class T>
+  bool is() const {
+    return pfi::text::json::is<T>(json_);
+  }
 
-  const std::string& GetPath() const { return path_; }
 
-  bool IsNull() const;
-
- private:
-  friend class ConfigRoot;
-
-  Config(const pfi::text::json::json& j,
-         const std::string& path) : json_(j), path_(path) {}
-
-  Config();
-
-  pfi::text::json::json::json_type_t GetActualType() const {
+  pfi::text::json::json::json_type_t type() const {
     return json_.type();
   }
+
+ private:
+  friend class config_root;
+
+  config(const pfi::text::json::json& j,
+         const std::string& path) : json_(j), path_(path) {}
+  config();
 
   const pfi::text::json::json& json_;
   const std::string path_;
 };
 
-class ConfigRoot : public Config {
+class config_root : public config {
  public:
-  ConfigRoot(const pfi::text::json::json& j)
-      : Config(json_, ""), json_(j) {}
+  config_root(const pfi::text::json::json& j)
+      : config(json_, ""), json_(j) {}
 
  private:
   const pfi::text::json::json json_;
 };
 
-ConfigRoot Load(const std::string& path);
-
-}
+} // jsonconfig
 
 #endif // JSONCONFIG_CONFIG_HPP_

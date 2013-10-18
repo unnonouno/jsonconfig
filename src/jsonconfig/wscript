@@ -5,16 +5,3 @@ def build(bld):
     use = 'PFICOMMON'
     )
 
-  bld.program(
-    features = 'gtest',
-    source = 'config_test.cpp',
-    target = 'config_test',
-    use = 'PFICOMMON jsonconfig'
-  )
-
-  bld.program(
-    features = 'gtest',
-    source = 'cast_test.cpp',
-    target = 'cast_test',
-    use = 'PFICOMMON jsonconfig'
-  )

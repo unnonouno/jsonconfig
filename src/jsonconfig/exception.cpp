@@ -5,15 +5,13 @@ using pfi::text::json::json;
 
 namespace jsonconfig {
 
-ConfigError::ConfigError(const std::string& path,
+config_error::config_error(const std::string& path,
                          const std::string& message)
     : path_(path),
       message_(message + " (" + path_ + ")") {
 }
 
-ConfigError::~ConfigError() throw() {}
-
-////////
+config_error::~config_error() throw() {}
 
 namespace {
 
@@ -44,40 +42,36 @@ std::string MakeTypeErrorMessage(json::json_type_t expect,
       + TypeToName(actual) + " is given.";
 }
 
-}
-
-TypeError::TypeError(const std::string& path,
-                     json::json_type_t expect,
-                     json::json_type_t actual)
-    : ConfigError(path, MakeTypeErrorMessage(expect, actual)),
-      expect_(expect), actual_(actual) {}
-
-TypeError::~TypeError() throw() {}
-
-////////
-
 std::string MakeOutOfRangeMessage(size_t size, size_t index) {
   std::ostringstream os;
   os << "Out of range 0.." << size << ": " << index;
   return os.str();
 }
 
-OutOfRange::OutOfRange(const std::string& path,
-                       size_t size, size_t index)
-    : ConfigError(path, MakeOutOfRangeMessage(size, index)),
-      size_(size), index_(index) {}
-
-OutOfRange::~OutOfRange() throw() {}
-
-////////
-
 std::string MakeNotFoundMessage(const std::string& key) {
   return "\"" + key + "\" is not found";
 }
 
-NotFound::NotFound(const std::string& path, const std::string& key)
-    : ConfigError(path, MakeNotFoundMessage(key)), key_(key) {}
+} // namespace
 
-NotFound::~NotFound() throw() {}
+type_error::type_error(const std::string& path,
+                     json::json_type_t expect,
+                     json::json_type_t actual)
+    : config_error(path, MakeTypeErrorMessage(expect, actual)),
+      expect_(expect), actual_(actual) {}
 
-}
+type_error::~type_error() throw() {}
+
+out_of_range::out_of_range(const std::string& path,
+                       size_t size, size_t index)
+    : config_error(path, MakeOutOfRangeMessage(size, index)),
+      size_(size), index_(index) {}
+
+out_of_range::~out_of_range() throw() {}
+
+not_found::not_found(const std::string& path, const std::string& key)
+    : config_error(path, MakeNotFoundMessage(key)), key_(key) {}
+
+not_found::~not_found() throw() {}
+
+} // jsonconfig
