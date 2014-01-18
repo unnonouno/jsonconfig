@@ -1,5 +1,8 @@
 import Options
 
+VERSION='0.0.1'
+APPNAME='jsonconfig'
+
 def options(opt):
   opt.load('compiler_cxx')
   opt.load('unittest_gtest')
