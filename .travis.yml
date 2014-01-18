@@ -2,7 +2,7 @@ language: cpp
 
 compiler:
   - gcc
-#  - clang
+  - clang
 
 before_install:
   - sudo pip install PyYAML
@@ -22,8 +22,8 @@ after_success:
   - coveralls -b build -r . -E ".*_test.cpp" -e test.cpp -x .cpp -x .hpp
 
 branches:
-  only:
-    - master
+  - except:
+    gh-pages
 
 notifications:
   email: false
