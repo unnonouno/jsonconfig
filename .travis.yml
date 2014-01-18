@@ -1,0 +1,29 @@
+language: cpp
+
+compiler:
+  - gcc
+#  - clang
+
+before_install:
+  - sudo pip install PyYAML
+  - sudo pip install cpp-coveralls
+  - git clone https://github.com/pfi/pficommon.git
+  - pushd pficommon
+  - ./waf configure
+  - ./waf build
+  - sudo ./waf install
+  - popd
+
+script:
+  - ./waf configure --enable-gcov
+  - ./waf build --checkall
+
+after_success:
+  - coveralls -b build -r . -E ".*_test.cpp" -e test.cpp -x .cpp -x .hpp
+
+branches:
+  only:
+    - master
+
+notifications:
+  email: false
