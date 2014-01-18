@@ -14,7 +14,7 @@ namespace jsonconfig {
 
 TEST(jsonconfig, bool) {
   json j(new json_bool(false));
-  EXPECT_EQ(false, config_root(j).As<bool>());
+  EXPECT_FALSE(config_root(j).As<bool>());
 }
 
 TEST(jsonconfig, bool_type_error) {
@@ -364,7 +364,7 @@ TEST(jsonconfig_cast, error) {
     cout << errors[i]->what() << endl;
   }
 
-  EXPECT_EQ(3, errors.size());
+  EXPECT_EQ(3u, errors.size());
 
   type_error* e1 = dynamic_cast<type_error*>(errors[0].get());
   ASSERT_TRUE(e1);

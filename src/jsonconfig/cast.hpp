@@ -104,7 +104,7 @@ inline void serialize(json_config_iarchive_cast& js, std::map<K, V>& m) {
   std::map<K, V> tmp;
   typedef config::iterator iter_t;
   for (iter_t it = js.get_config().begin(), end = js.get_config().end(); it != end; ++it) {
-    V value;
+    V value = V();
     json_from_config(it.value(), value, js.errors());
     tmp[it.key()] = value;
   }
@@ -119,7 +119,7 @@ inline void serialize(json_config_iarchive_cast& js, pfi::data::unordered_map<K,
   pfi::data::unordered_map<K, V> tmp;
   typedef config::iterator iter_t;
   for (iter_t it = js.get_config().begin(), end = js.get_config().end(); it != end; ++it) {
-    V value;
+    V value = V();
     json_from_config(it.value(), value, js.errors());
     tmp[it.key()] = value;
   }
@@ -130,7 +130,7 @@ template <typename T>
 inline void serialize(json_config_iarchive_cast& js, pfi::data::serialization::named_value<pfi::data::optional<T> >& v) {
   using pfi::text::json::json;
   if (js.get_config().contain(v.name) && (js.get_config()[v.name].get().type() != json::Null)) {
-    T value;
+    T value = T();
     json_from_config(js.get_config()[v.name], value, js.errors());
     v.v = value;
   } else {
@@ -168,14 +168,14 @@ void json_from_config(const config& conf, T& v, config_error_list* errors) {
 
 template <class T>
 T config_cast(const config& c) {
-  T value;
+  T value = T();
   json_from_config(c, value);
   return value;
 }
 
 template <class T>
 T config_cast(const config& c, config_error_list& errors) {
-  T value;
+  T value = T();
   json_config_iarchive_cast cast(c, &errors);
   serialize(cast, value);
   return value;
