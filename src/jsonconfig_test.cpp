@@ -14,13 +14,13 @@ namespace jsonconfig {
 
 TEST(jsonconfig, bool) {
   json j(new json_bool(false));
-  EXPECT_FALSE(config_root(j).As<bool>());
+  EXPECT_FALSE(config_root(j).as<bool>());
 }
 
 TEST(jsonconfig, bool_type_error) {
   try {
     json j(new json_bool(false));
-    config_root(j).As<int>();
+    config_root(j).as<int>();
     FAIL();
   } catch (const type_error& e) {
     EXPECT_EQ(json::Bool, e.actual());
@@ -30,13 +30,13 @@ TEST(jsonconfig, bool_type_error) {
 
 TEST(jsonconfig, int) {
   json j(new json_integer(10));
-  EXPECT_EQ(10, config_root(j).As<int>());
+  EXPECT_EQ(10, config_root(j).as<int>());
 }
 
 TEST(jsonconfig, int_type_error) {
   try {
     json j(new json_integer(10));
-    config_root(j).As<std::string>();
+    config_root(j).as<std::string>();
     FAIL();
   } catch (const type_error& e) {
     EXPECT_EQ(json::Integer, e.actual());
@@ -46,13 +46,13 @@ TEST(jsonconfig, int_type_error) {
 
 TEST(jsonconfig, float) {
   json j(new json_float(0.1));
-  EXPECT_FLOAT_EQ(0.1, config_root(j).As<float>());
+  EXPECT_FLOAT_EQ(0.1, config_root(j).as<float>());
 }
 
 TEST(jsonconfig, float_type_error) {
   try {
     json j(new json_float(0.1));
-    config_root(j).As<std::string>();
+    config_root(j).as<std::string>();
     FAIL();
   } catch (const type_error& e) {
     EXPECT_EQ(json::Float, e.actual());
@@ -63,13 +63,13 @@ TEST(jsonconfig, float_type_error) {
 TEST(jsonconfig, array) {
   json j(new json_array());
   j.add(json(new json_integer(10)));
-  EXPECT_EQ(10, config_root(j)[0].As<int>());
+  EXPECT_EQ(10, config_root(j)[0].as<int>());
 }
 
 TEST(jsonconfig, array_out_of_range) {
   json j(new json_array());
   try {
-    config_root(j)[1].As<int>();
+    config_root(j)[1].as<int>();
     FAIL();
   } catch (const out_of_range& e) {
     EXPECT_EQ(0u, e.size());
@@ -93,7 +93,7 @@ TEST(jsonconfig, array_type_error) {
 TEST(jsonconfig, object) {
   json j(new json_object());
   j["age"] = json(new json_integer(10));
-  EXPECT_EQ(10, config_root(j)["age"].As<int>());
+  EXPECT_EQ(10, config_root(j)["age"].as<int>());
 }
 
 TEST(jsonconfig, object_not_found) {
@@ -128,7 +128,7 @@ TEST(jsonconfig, error_path) {
   j[0]["user"]["age"] = json(new json_integer(10));
   config_root c(j);
   try {
-    c[0]["user"]["age"].As<std::string>();
+    c[0]["user"]["age"].as<std::string>();
     FAIL();
   } catch (const type_error& e) {
     EXPECT_EQ("[0].user.age", e.path());

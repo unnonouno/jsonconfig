@@ -60,7 +60,7 @@ class config {
   };
 
   template <typename T>
-  T As() const {
+  T as() const {
     return config_cast<T>(*this);
   }
 
