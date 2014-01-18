@@ -1,6 +1,8 @@
 jsonconfig
 ==========
 
+[![Build Status](https://travis-ci.org/unnonouno/jsonconfig.png?branch=master)](https://travis-ci.org/unnonouno/jsonconfig) [![Coverage Status](https://coveralls.io/repos/unnonouno/jsonconfig/badge.png)](https://coveralls.io/r/unnonouno/jsonconfig)
+
 jsonconfig is a simple helper class with json object for application configuration. 
 
 - simply wrap pficommon json object
