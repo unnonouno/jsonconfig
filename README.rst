@@ -46,11 +46,11 @@ Assume you have a configuration file like this::
 
 You can access it with `As` method::
 
-  jsonconfig::xoConfigRoot config = jsonconfig::Load("path/to/json/file");
+  jsonconfig::config_root config = jsonconfig::load("path/to/json/file");
   // print "http://hoge.com"
-  std::cout << config["web_server"]["host"].As<std::string>() << std::endl;
+  std::cout << config["web_server"]["host"].as<std::string>() << std::endl;
   // print 8080
-  std::cout << config["web_server"]["port"].As<int>() << std::endl;
+  std::cout << config["web_server"]["port"].as<int>() << std::endl;
 
 You can use struct to define schema of configuration explicitly::
 
@@ -73,5 +73,5 @@ You can use struct to define schema of configuration explicitly::
     }
   };
 
-  server_conf server = jsonconfig::ConfigCast<server_conf>(conf);
+  server_conf server = jsonconfig::config_cast<server_conf>(conf);
 
