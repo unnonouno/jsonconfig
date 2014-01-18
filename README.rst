@@ -44,7 +44,7 @@ Assume you have a configuration file like this::
     "users": ["saitama", "gumma", "ibaraki"]
   }
 
-You can access it with `As` method::
+You can access it with `as` method::
 
   jsonconfig::config_root config = jsonconfig::load("path/to/json/file");
   // print "http://hoge.com"
