@@ -23,7 +23,7 @@ after_success:
 
 branches:
   - except:
-    gh-pages
+    - gh-pages
 
 notifications:
   email: false
