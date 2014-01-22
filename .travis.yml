@@ -13,6 +13,7 @@ before_install:
   - ./waf build
   - sudo ./waf install
   - popd
+  - sudo ldconfig
 
 script:
   - ./waf configure --enable-gcov
