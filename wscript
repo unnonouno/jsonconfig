@@ -35,3 +35,16 @@ def build(bld):
     includes = 'src',
     use = 'jsonconfig'
     )
+
+def cpplint(ctx):
+  cpplint_args = '--filter=-runtime/references,-legal/copyright'
+
+  src_dir = ctx.path.find_node('src')
+  files = []
+  for f in src_dir.ant_glob('**/*.cpp **/*.hpp'):
+    files.append(f.path_from(ctx.path))
+
+  args = 'cpplint.py %s %s' % (cpplint_args,' '.join(files))
+  result = ctx.exec_command(args)
+  if result != 0:
+    ctx.fatal('cpplint failed')
