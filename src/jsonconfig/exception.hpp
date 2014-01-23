@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef JSONCONFIG_EXCEPTION_HPP_
 #define JSONCONFIG_EXCEPTION_HPP_
 
@@ -13,8 +11,9 @@ namespace jsonconfig {
 
 class config_error : public std::exception {
  public:
-  config_error(const std::string& path,
-              const std::string& message);
+  config_error(
+      const std::string& path,
+      const std::string& message);
 
   ~config_error() throw();
 
@@ -33,9 +32,10 @@ class config_error : public std::exception {
 
 class type_error : public config_error {
  public:
-  type_error(const std::string& path,
-            pfi::text::json::json::json_type_t expect,
-            pfi::text::json::json::json_type_t actual);
+  type_error(
+      const std::string& path,
+      pfi::text::json::json::json_type_t expect,
+      pfi::text::json::json::json_type_t actual);
 
   ~type_error() throw();
 
@@ -54,8 +54,7 @@ class type_error : public config_error {
 
 class out_of_range : public config_error {
  public:
-  out_of_range(const std::string& path,
-             size_t size, size_t index);
+  out_of_range(const std::string& path, size_t size, size_t index);
 
   ~out_of_range() throw();
 
@@ -86,6 +85,6 @@ class not_found : public config_error {
   std::string key_;
 };
 
-} // jsonconfig
+}  // namespace jsonconfig
 
-#endif // JSONCONFIG_EXCEPTION_HPP_
+#endif  // JSONCONFIG_EXCEPTION_HPP_

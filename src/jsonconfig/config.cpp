@@ -1,7 +1,9 @@
 #include "config.hpp"
+
+#include <string>
 #include "exception.hpp"
 
-using namespace std;
+using std::string;
 
 namespace jsonconfig {
 
@@ -9,8 +11,10 @@ config::iterator::iterator(const config::iterator& it)
   : parent_(it.parent_), it_(it.it_) {
 }
 
-config::iterator::iterator(const config& parent, const pfi::text::json::json::const_iterator& it)
-  : parent_(parent), it_(it) {
+config::iterator::iterator(
+    const config& parent,
+    const pfi::text::json::json::const_iterator& it)
+    : parent_(parent), it_(it) {
 }
 
 const std::string& config::iterator::iterator::key() const {
@@ -28,8 +32,9 @@ config config::operator[](size_t index) const {
       std::ostringstream os;
       os << path_ << "[" << index << "]";
       return config(json_[index], os.str());
-    } else
+    } else {
       throw out_of_range(path_, json_.size(), index);
+    }
   } catch (const std::bad_cast& e) {
     throw type_error(path_, pfi::text::json::json::Array, type());
   }
@@ -67,4 +72,4 @@ config::iterator config::end() const {
   return iterator(*this, json_.end());
 }
 
-} // jsonconfig
+}  // namespace jsonconfig

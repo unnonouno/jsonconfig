@@ -1,9 +1,10 @@
-
 #ifndef JSONCONFIG_CONFIG_HPP_
 #define JSONCONFIG_CONFIG_HPP_
 
 #include <stdint.h>
+#include <string>
 #include <typeinfo>
+#include <utility>
 
 #include <pficommon/text/json.h>
 #include <pficommon/lang/cast.h>
@@ -20,9 +21,12 @@ class config {
  public:
   class iterator {  // but this is const_iterator
    public:
-     typedef pfi::text::json::json::const_iterator iterator_base;
+    typedef pfi::text::json::json::const_iterator iterator_base;
+
     iterator(const iterator&);
-    iterator(const config& parent, const pfi::text::json::json::const_iterator& it);
+    iterator(
+        const config& parent,
+        const pfi::text::json::json::const_iterator& it);
 
     const std::string& key() const;
     config value() const;
@@ -40,15 +44,18 @@ class config {
       return *it_;
     }
 
-    const std::pair<const std::string, pfi::text::json::json>* operator->() const {
+    const std::pair<const std::string, pfi::text::json::json>*
+    operator->() const {
       return it_.operator->();
     }
+
     // FowrardIterator
     const iterator& operator++() {
       ++it_;
       return *this;
     }
-    const iterator operator++(int) {
+
+    const iterator operator++(int) {  // NOLINT
       iterator temp(*this);
       ++it_;
       return temp;
@@ -82,7 +89,6 @@ class config {
     return pfi::text::json::is<T>(json_);
   }
 
-
   pfi::text::json::json::json_type_t type() const {
     return json_.type();
   }
@@ -100,13 +106,13 @@ class config {
 
 class config_root : public config {
  public:
-  config_root(const pfi::text::json::json& j)
+  explicit config_root(const pfi::text::json::json& j)
       : config(json_, ""), json_(j) {}
 
  private:
   const pfi::text::json::json json_;
 };
 
-} // jsonconfig
+}  // namespace jsonconfig
 
-#endif // JSONCONFIG_CONFIG_HPP_
+#endif  // JSONCONFIG_CONFIG_HPP_

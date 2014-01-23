@@ -1,14 +1,27 @@
-#include <gtest/gtest.h>
-
+#include <iostream>
+#include <map>
 #include <sstream>
+#include <string>
+#include <vector>
+
 #include <pficommon/text/json.h>
 #include <pficommon/lang/cast.h>
+#include <gtest/gtest.h>
 
 #include "jsonconfig.hpp"
 
-using namespace std;
-using namespace pfi::lang;
-using namespace pfi::text::json;
+using pfi::lang::lexical_cast;
+using pfi::text::json::json;
+using pfi::text::json::json_array;
+using pfi::text::json::json_bool;
+using pfi::text::json::json_float;
+using pfi::text::json::json_integer;
+using pfi::text::json::json_object;
+using pfi::text::json::json_string;
+
+using std::map;
+using std::string;
+using std::vector;
 
 namespace jsonconfig {
 
@@ -172,7 +185,8 @@ TEST(jsonconfig_cast, unordered_map) {
   m["height"] = 160;
   m["weight"] = 60;
 
-  pfi::data::unordered_map<string, int> v = config_cast<pfi::data::unordered_map<string, int> >(conf);
+  pfi::data::unordered_map<string, int> v
+      = config_cast<pfi::data::unordered_map<string, int> >(conf);
   EXPECT_EQ(m["height"], v["height"]);
   EXPECT_EQ(m["weight"], v["weight"]);
 }
@@ -297,10 +311,10 @@ TEST(jsonconfig_cast, named_bad_type) {
     config_cast<opt2>(conf);
     FAIL();
   } catch (const type_error& e) {
-    cout << e.what() << endl;
+    std::cout << e.what() << std::endl;
     EXPECT_EQ("", e.path());
   } catch (const std::exception& e) {
-    cout << "what?: " << e.what() << endl;
+    std::cout << "what?: " << e.what() << std::endl;
   }
 }
 #endif
@@ -314,17 +328,32 @@ struct Person {
   pfi::data::optional<string> hobby;
 
   bool operator ==(const Person& p) const {
-    return name == p.name && height == p.height && age == p.age && attributes == p.attributes && sport == p.sport && hobby == p.hobby;
+    return name == p.name
+      && height == p.height
+      && age == p.age
+      && attributes == p.attributes
+      && sport == p.sport
+      && hobby == p.hobby;
   }
 
   template <class Ar>
   void serialize(Ar& ar) {
-    ar & MEMBER(name) & MEMBER(height) & MEMBER(age) & MEMBER(attributes) & MEMBER(sport) & MEMBER(hobby);
+    ar
+      & MEMBER(name)
+      & MEMBER(height)
+      & MEMBER(age)
+      & MEMBER(attributes)
+      & MEMBER(sport)
+      & MEMBER(hobby);
   }
 };
 
 TEST(jsonconfig_cast, struct) {
-  config_root conf(lexical_cast<json>("{\"name\": \"Taro\", \"height\": 160.0, \"age\": 20, \"attributes\": {\"address\": \"Tokyo\"}, \"sport\": \"tennis\"}"));
+  config_root conf(lexical_cast<json>(
+      "{\"name\": \"Taro\", "
+      "\"height\": 160.0, "
+      "\"age\": 20, "
+      "\"attributes\": {\"address\": \"Tokyo\"}, \"sport\": \"tennis\"}"));
   Person p;
   p.name = "Taro";
   p.height = 160.0;
@@ -355,31 +384,32 @@ struct server_conf {
 };
 
 TEST(jsonconfig_cast, error) {
-  config_root conf(lexical_cast<json>("{\"web_server\": { \"host\" : 123}, \"users\": [\"abc\", 1] }"));
+  config_root conf(lexical_cast<json>(
+      "{\"web_server\": { \"host\" : 123}, \"users\": [\"abc\", 1] }"));
 
   config_error_list errors;
   server_conf c = config_cast<server_conf>(conf, errors);
 
   for (size_t i = 0; i < errors.size(); i++) {
-    cout << errors[i]->what() << endl;
+    std::cout << errors[i]->what() << std::endl;
   }
 
   EXPECT_EQ(3u, errors.size());
 
-  type_error* e1 = dynamic_cast<type_error*>(errors[0].get());
+  type_error* e1 = static_cast<type_error*>(errors[0].get());
   ASSERT_TRUE(e1);
   EXPECT_EQ(".web_server.host", e1->path());
   EXPECT_EQ(json::Integer, e1->actual());
 
-  not_found* e2 = dynamic_cast<not_found*>(errors[1].get());
+  not_found* e2 = static_cast<not_found*>(errors[1].get());
   ASSERT_TRUE(e2);
   EXPECT_EQ(".web_server", e2->path());
   EXPECT_EQ("port", e2->key());
 
-  type_error* e3 = dynamic_cast<type_error*>(errors[2].get());
+  type_error* e3 = static_cast<type_error*>(errors[2].get());
   ASSERT_TRUE(e3);
   EXPECT_EQ(".users[1]", e3->path());
   EXPECT_EQ(json::Integer, e3->actual());
 }
 
-} // jsonconfig
+}  // namespace jsonconfig
