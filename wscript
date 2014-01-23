@@ -48,3 +48,15 @@ def cpplint(ctx):
   result = ctx.exec_command(args)
   if result != 0:
     ctx.fatal('cpplint failed')
+
+def gcovr(ctx):
+  excludes = [
+    '.*\\.unittest-gtest.*',
+    '.*_test\\.cpp'
+    ]
+
+  args = 'gcovr --branches -r . '
+  for e in excludes:
+    args += ' -e "%s"' % e
+
+  ctx.exec_command(args)
