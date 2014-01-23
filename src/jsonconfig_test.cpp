@@ -1,4 +1,3 @@
-#include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
@@ -311,10 +310,7 @@ TEST(jsonconfig_cast, named_bad_type) {
     config_cast<opt2>(conf);
     FAIL();
   } catch (const type_error& e) {
-    std::cout << e.what() << std::endl;
     EXPECT_EQ("", e.path());
-  } catch (const std::exception& e) {
-    std::cout << "what?: " << e.what() << std::endl;
   }
 }
 #endif
@@ -389,10 +385,6 @@ TEST(jsonconfig_cast, error) {
 
   config_error_list errors;
   server_conf c = config_cast<server_conf>(conf, errors);
-
-  for (size_t i = 0; i < errors.size(); i++) {
-    std::cout << errors[i]->what() << std::endl;
-  }
 
   EXPECT_EQ(3u, errors.size());
 
