@@ -14,10 +14,14 @@ before_install:
   - sudo ./waf install
   - popd
   - sudo ldconfig
+  - wget http://google-styleguide.googlecode.com/svn/trunk/cpplint/cpplint.py
+  - chmod +x cpplint.py
+  - sudo mv cpplint.py /usr/local/bin
 
 script:
   - ./waf configure --enable-gcov
   - ./waf build --checkall
+  - ./waf cpplint
 
 after_success:
   - coveralls -b build -r . -E ".*_test.cpp" -e test.cpp -x .cpp -x .hpp
