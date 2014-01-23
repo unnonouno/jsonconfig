@@ -24,7 +24,7 @@ script:
   - ./waf cpplint
 
 after_success:
-  - coveralls -b build -r . -E ".*_test.cpp" -e test.cpp -x .cpp -x .hpp
+  - coveralls -b build -r . -E ".*_test.cpp" -E ".*/.unittest-gtest/.*" -e test.cpp -x .cpp -x .hpp
 
 branches:
   except:
