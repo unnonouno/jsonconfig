@@ -9,7 +9,6 @@ def build(bld):
     use = 'PFICOMMON jsonconfig'
   )
   headers = ['jsonconfig.hpp']
-  headers = ['%s' % h for h in headers]
   bld.headers.extend(headers)
 
   bld.install_files('${PREFIX}/include',
