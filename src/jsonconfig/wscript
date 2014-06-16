@@ -4,4 +4,7 @@ def build(bld):
     target = 'jsonconfig',
     use = 'PFICOMMON'
     )
+  headers = ['cast.hpp', 'exception.hpp', 'config.hpp']
+  headers = ['jsonconfig/%s' % h for h in headers]
+  bld.headers.extend(headers)
 
