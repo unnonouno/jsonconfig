@@ -40,16 +40,22 @@ def build(bld):
 
 
 def cpplint(ctx):
-    cpplint_args = '--filter=-runtime/references,-legal/copyright,-build/include_order --extensions=cpp,hpp'
+    filters = [
+        '-runtime/references',
+        '-legal/copyright',
+        '-build/include_order',
+    ]
+    cpplint_args = '--filter=%s --extensions=cpp,hpp' % ','.join(filters)
 
     src_dir = ctx.path.find_node('src')
     files = []
     for f in src_dir.ant_glob('**/*.cpp **/*.hpp'):
         files.append(f.path_from(ctx.path))
 
-    args = 'cpplint.py %s %s' % (cpplint_args, ' '.join(files))
+    args = 'cpplint.py %s %s 2>&1 | grep -v "^\(Done\|Total\)"' \
+           % (cpplint_args, ' '.join(files))
     result = ctx.exec_command(args)
-    if result != 0:
+    if result == 0:
         ctx.fatal('cpplint failed')
 
 
