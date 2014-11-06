@@ -1,10 +1,10 @@
 def build(bld):
-  bld.shlib(
-    source = ['config.cpp', 'exception.cpp'],
-    target = 'jsonconfig',
-    use = 'PFICOMMON'
+    bld.shlib(
+        source=['config.cpp', 'exception.cpp'],
+        target='jsonconfig',
+        use='PFICOMMON'
     )
-  headers = ['cast.hpp', 'exception.hpp', 'config.hpp']
-  headers = ['jsonconfig/%s' % h for h in headers]
-  bld.headers.extend(headers)
+    headers = ['cast.hpp', 'exception.hpp', 'config.hpp']
+    headers = ['jsonconfig/%s' % h for h in headers]
+    bld.headers.extend(headers)
 

@@ -1,16 +1,16 @@
 def build(bld):
-  bld.headers = []
-  bld.recurse('jsonconfig')
+    bld.headers = []
+    bld.recurse('jsonconfig')
 
-  bld.program(
-    features = 'gtest',
-    source = 'jsonconfig_test.cpp',
-    target = 'jsonconfig_test',
-    use = 'PFICOMMON jsonconfig'
-  )
-  headers = ['jsonconfig.hpp']
-  bld.headers.extend(headers)
+    bld.program(
+        features='gtest',
+        source='jsonconfig_test.cpp',
+        target='jsonconfig_test',
+        use='PFICOMMON jsonconfig'
+    )
+    headers = ['jsonconfig.hpp']
+    bld.headers.extend(headers)
 
-  bld.install_files('${PREFIX}/include',
-                    list(set(bld.headers)),
-                    relative_trick=True)
+    bld.install_files('${PREFIX}/include',
+                      list(set(bld.headers)),
+                      relative_trick=True)
