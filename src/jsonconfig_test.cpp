@@ -404,4 +404,29 @@ TEST(jsonconfig_cast, error) {
   EXPECT_EQ(json::Integer, e3->actual());
 }
 
+struct float_values {
+  template <class Ar>
+  void serialize(Ar& ar) {
+    ar
+        & MEMBER(float1)
+        & MEMBER(float2)
+        & MEMBER(double1)
+        & MEMBER(double2);
+  }
+  float float1, float2;
+  double double1, double2;
+};
+
+TEST(jconconfig_cast, int_to_float) {
+  config_root j(lexical_cast<json>(
+      "{\"float1\": 0, \"float2\": 1, \"double1\": 0, \"double2\": -1}"));
+  ASSERT_NO_THROW(config_cast<float_values>(j));
+  float_values fvs = config_cast<float_values>(j);
+
+  EXPECT_EQ(0, fvs.float1);
+  EXPECT_EQ(1, fvs.float2);
+  EXPECT_EQ(0, fvs.double1);
+  EXPECT_EQ(-1, fvs.double2);
+}
+
 }  // namespace jsonconfig
