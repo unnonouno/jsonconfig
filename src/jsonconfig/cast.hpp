@@ -10,6 +10,7 @@
 #include <pficommon/lang/shared_ptr.h>
 
 #include "config.hpp"
+#include "exception.hpp"
 
 namespace jsonconfig {
 
@@ -65,6 +66,11 @@ inline bool check_json_type(
     json_config_iarchive_cast& js,
     pfi::text::json::json::json_type_t t) {
   if (js.get().type() != t) {
+    // int -> float is valid
+    if (js.get().type() == pfi::text::json::json::Integer &&
+        t == pfi::text::json::json::Float) {
+      return true;
+    }
     type_error e(js.get_config().path(), t, js.get().type());
     if (js.trace_error()) {
       js.push_error(e);
