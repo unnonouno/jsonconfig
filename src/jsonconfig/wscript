@@ -4,6 +4,12 @@ def build(bld):
         target='jsonconfig',
         use='PFICOMMON'
     )
+    bld.stlib(
+        source=['config.cpp', 'exception.cpp'],
+        target='jsonconfig',
+        use='PFICOMMON',
+        install_path='${PREFIX}/lib'
+    )
     headers = ['cast.hpp', 'exception.hpp', 'config.hpp']
     headers = ['jsonconfig/%s' % h for h in headers]
     bld.headers.extend(headers)
