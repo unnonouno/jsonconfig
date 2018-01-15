@@ -79,3 +79,9 @@ You can use struct to define schema of configuration explicitly::
 
   server_conf server = jsonconfig::config_cast<server_conf>(conf);
 
+
+License
+-------
+
+MIT
+
